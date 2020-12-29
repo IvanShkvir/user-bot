@@ -93,7 +93,8 @@ def mention_all(_, msg):
     for member in app.iter_chat_members(msg.chat.id):
         if not member.user.is_bot:
             i += 1
-            text += "[A ](tg://user?id={})".format(member.user.id)
+            text += "[A](tg://user?id={})".format(member.user.id)
+            text += " "
         if i == 5:
             app.send_message(msg.chat.id, text, parse_mode="markdown")
             i = 0
