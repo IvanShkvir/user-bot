@@ -1,8 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.raw import functions
 from pyrogram.errors import FloodWait
-
-import time
 from time import sleep
 import random
 
@@ -76,14 +74,32 @@ def mention_user(_, msg):
 
 
 @app.on_message(filters.command("info", prefixes="."))
-def info(app, msg):
-    text = msg.text.split(".info")[1].replace(" ", "")
-
-    id = app.get_users(text).id
-
-    print(id)
+def info(_, msg):
+    text = ""
+    for member in app.iter_chat_members(msg.chat.id):
+        print(member)
 
     msg.delete()
+    # app.send_message(msg.chat.id, text, parse_mode="markdown")
+
+
+@app.on_message(filters.command(["mention_all", "mention-all"], prefixes="."))
+def mention_all(_, msg):
+    msg.delete()
+    orig_text = msg.text.split(maxsplit=1)[1]
+    app.send_message(msg.chat.id, orig_text, parse_mode="markdown")
+    text = ""
+    i = 0
+    for member in app.iter_chat_members(msg.chat.id):
+        if not member.user.is_bot:
+            i += 1
+            text += "[A ](tg://user?id={})".format(member.user.id)
+        if i == 5:
+            app.send_message(msg.chat.id, text, parse_mode="markdown")
+            i = 0
+            text = ""
+    if text != "":
+        app.send_message(msg.chat.id, text, parse_mode="markdown")
 
 
 app.run()
