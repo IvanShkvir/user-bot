@@ -2,7 +2,10 @@ from pyrogram import Client, filters
 from pyrogram.raw import functions
 from pyrogram.errors import FloodWait
 from time import sleep
+from datetime import datetime
 import random
+
+from additional import REPLACEMENT_MAP as RM
 
 app = Client("my_account")
 
@@ -33,7 +36,7 @@ def type(_, msg):
 def hack(_, msg):
     perc = 0
 
-    while (perc < 100):
+    while perc < 100:
         try:
             text = "🧠 Провожу тест на IQ " + str(perc) + "%"
             msg.edit(text)
@@ -101,6 +104,103 @@ def mention_all(_, msg):
             text = ""
     if text != "":
         app.send_message(msg.chat.id, text, parse_mode="markdown")
+
+
+@app.on_message(filters.command(["spam", "спам"], prefixes="."))
+def spam(_, msg):
+    msg.delete()
+    text = msg.text.split(maxsplit=2)[2]
+    n = msg.text.split(maxsplit=2)[1]
+
+    for _ in range(int(n)):
+        try:
+            app.send_message(msg.chat.id, text)
+        except FloodWait as e:
+            sleep(e.x)
+
+
+@app.on_message(filters.command("flip", prefixes=".") & filters.me)
+def flip(_, msg):
+    msg.delete()
+    text = msg.text.split(".flip", maxsplit=1)[1]
+    final_str = ""
+    text = text[::-1]
+    for char in text:
+        if char in RM.keys():
+            new_char = RM[char]
+        else:
+            new_char = char
+        final_str += new_char
+    app.send_message(msg.chat.id, final_str)
+
+
+@app.on_message(filters.command("until_session", prefixes="."))
+def time_until_session(_, msg):
+    session = datetime(2021, 1, 21, hour=8, minute=30)
+    while True:
+        time_now = datetime.now()
+
+        if time_now.month == session.month and time_now.day == session.day:
+            msg.delete()
+            app.send_message(msg.chat.id, "ГГ, сесія вже сьогодні, готуйте гроші)))")
+            break
+        try:
+            string = "‼ Сесія розпочнеться через "
+            delta = str(session - time_now)[:-7]
+
+            day = delta.split()[0]
+            if len(day) == 2:
+                pass
+            if day == "11":
+                ending = " днів, "
+            elif day[1] == '1':
+                ending = " день, "
+            else:
+                ending = " днів, "
+
+            string += day
+            string += ending
+
+            hms = delta.split()[2]
+
+            h, m, s = map(int, hms.split(":"))
+
+            if h == 1 or h == 21:
+                ending = " годину, "
+            elif 1 < h < 5 or 21 < h < 25:
+                ending = " години, "
+            else:
+                ending = " годин, "
+
+            string += str(h)
+            string += ending
+
+            if str(m)[-1] == '1' and m != 11:
+                ending = " хвилину, "
+            elif str(m)[-1] in ['2', '3', '4'] and not str(m).startswith('1'):
+                ending = " хвилини, "
+            else:
+                ending = " хвилин, "
+
+            string += str(m)
+            string += ending
+
+            if str(s)[-1] == '1' and s != 11:
+                ending = " секунду! ‼"
+            elif str(s)[-1] in ['2', '3', '4'] and not str(s).startswith('1'):
+                ending = " секунди! ‼"
+            else:
+                ending = " секунд! ‼"
+
+            string += str(s)
+            string += ending
+
+            msg.edit(string)
+            sleep(1)
+
+        except FloodWait as e:
+            sleep(e.x)
+
 
 
 app.run()
