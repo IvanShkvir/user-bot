@@ -212,6 +212,8 @@ def time_until_ny(_, msg):
         if time_now == new_year:
             msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
             app.send_message(msg.chat.id, "Усіх вітаю зі святом, бажаю усього найкращого в новому 2021 році!🥳")
+            app.send_message(msg.chat.id, "А тепер просто нагадування😂")
+            app.send_message(msg.chat.id, ".until_session")
             break
         try:
             string = "🎄 До Нового Року "
