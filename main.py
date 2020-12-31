@@ -139,9 +139,11 @@ def time_until_session(_, msg):
     session = datetime(2021, 1, 21, hour=8, minute=30)
     while True:
         time_now = datetime.now()
+        print(time_now)
         d = timedelta(hours=2)
-
         time_now += d
+        print("After adding two hours")
+        print(time_now)
 
         if time_now.month == session.month and time_now.day == session.day:
             msg.delete()
@@ -211,9 +213,11 @@ def time_until_ny(_, msg):
 
     while True:
         time_now = datetime.now()
+        print(time_now)
         d = timedelta(hours=2)
-
         time_now += d
+        print("After adding two hours")
+        print(time_now)
 
         if time_now == new_year:
             msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
