@@ -4,6 +4,7 @@ from pyrogram.errors import FloodWait
 from time import sleep
 from datetime import datetime
 import random
+from pytz import timezone
 
 from additional import REPLACEMENT_MAP as RM
 
@@ -136,9 +137,11 @@ def flip(_, msg):
 
 @app.on_message(filters.command("until_session", prefixes="."))
 def time_until_session(_, msg):
-    session = datetime(2021, 1, 21, hour=8, minute=30)
+    local_tz = timezone('Europe/Kiev')
+
+    session = datetime(2021, 1, 21, hour=8, minute=30).astimezone(local_tz)
     while True:
-        time_now = datetime.now()
+        time_now = datetime.now().astimezone(local_tz)
 
         if time_now.month == session.month and time_now.day == session.day:
             msg.delete()
@@ -204,10 +207,12 @@ def time_until_session(_, msg):
 
 @app.on_message(filters.command("until_ny", prefixes="."))
 def time_until_ny(_, msg):
-    new_year = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=1)
+    local_tz = timezone('Europe/Kiev')
+
+    new_year = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=1).astimezone(local_tz)
 
     while True:
-        time_now = datetime.now()
+        time_now = datetime.now().astimezone(local_tz)
 
         if time_now == new_year:
             msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
