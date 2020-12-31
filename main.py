@@ -213,10 +213,11 @@ def time_until_ny(_, msg):
 
     while True:
         time_now = datetime.now()
+        print("Before adding:")
         print(time_now)
         d = timedelta(hours=2)
         time_now += d
-        print("After adding two hours")
+        print("After adding two hours:")
         print(time_now)
 
         if time_now == new_year:
@@ -227,10 +228,16 @@ def time_until_ny(_, msg):
             break
         try:
             string = "🎄 До Нового Року "
+
+            print("New Year Date:")
+            print(new_year)
+            print("Time Now:")
+            print(time_now)
+            print("Their difference")
             delta = str(new_year - time_now)[:-7]
+            print(delta)
 
             h, m, s = map(int, delta.split(":"))
-            h += 2
 
             if h == 1 or h == 21:
                 ending = " година, "
