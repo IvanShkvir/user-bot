@@ -202,5 +202,58 @@ def time_until_session(_, msg):
             sleep(e.x)
 
 
+@app.on_message(filters.command("until_ny", prefixes="."))
+def time_until_ny(_, msg):
+    new_year = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=1)
+
+    while True:
+        time_now = datetime.now()
+
+        if time_now == new_year:
+            msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
+            app.send_message(msg.chat.id, "Усіх вітаю зі святом, бажаю усього найкращого в новому 2021 році!🥳")
+            break
+        try:
+            string = "🎄 До Нового Року "
+            delta = str(new_year - time_now)[:-7]
+
+            h, m, s = map(int, delta.split(":"))
+
+            if h == 1 or h == 21:
+                ending = " година, "
+            elif 1 < h < 5 or 21 < h < 25:
+                ending = " години, "
+            else:
+                ending = " годин, "
+
+            string += str(h)
+            string += ending
+
+            if str(m)[-1] == '1' and m != 11:
+                ending = " хвилина, "
+            elif str(m)[-1] in ['2', '3', '4'] and not str(m).startswith('1'):
+                ending = " хвилини, "
+            else:
+                ending = " хвилин, "
+
+            string += str(m)
+            string += ending
+
+            if str(s)[-1] == '1' and s != 11:
+                ending = " секунда! 🎄"
+            elif str(s)[-1] in ['2', '3', '4'] and not str(s).startswith('1'):
+                ending = " секунди! 🎄"
+            else:
+                ending = " секунд! 🎄"
+
+            string += str(s)
+            string += ending
+
+            msg.edit(string)
+            sleep(0.9)
+
+        except FloodWait as e:
+            sleep(e.x)
+
 
 app.run()
