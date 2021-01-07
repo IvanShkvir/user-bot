@@ -91,12 +91,15 @@ def info(_, msg):
 def mention_all(_, msg):
     msg.delete()
     pattern = r"\[(.*)\]"
-    orig_text = msg.text.split(maxsplit=1)[1]
-    if re.search(pattern, orig_text):
-        tag = re.search(pattern, orig_text).group(1)
+    try:
+        orig_text = msg.text.split(maxsplit=1)[1]
+        app.send_message(msg.chat.id, orig_text.split(maxsplit=1)[1], parse_mode="markdown")
+    except IndexError:
+        pass
+    if re.search(pattern, msg.text):
+        tag = re.search(pattern, msg.text).group(1)
     else:
         tag = "A"
-    app.send_message(msg.chat.id, orig_text.split(maxsplit=1)[1], parse_mode="markdown")
     text = ""
     i = 0
     k = 0
