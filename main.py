@@ -3,6 +3,7 @@ from pyrogram.raw import functions
 from pyrogram.errors import FloodWait
 from time import sleep
 from datetime import datetime, timedelta
+import re
 import random
 
 from additional import REPLACEMENT_MAP as RM
@@ -89,15 +90,26 @@ def info(_, msg):
 @app.on_message(filters.command(["mention_all", "mention-all"], prefixes="."))
 def mention_all(_, msg):
     msg.delete()
+    pattern = r"\[(.*)\]"
     orig_text = msg.text.split(maxsplit=1)[1]
-    app.send_message(msg.chat.id, orig_text, parse_mode="markdown")
+    if re.search(pattern, orig_text):
+        tag = re.search(pattern, orig_text).group(1)
+    else:
+        tag = "A"
+    app.send_message(msg.chat.id, orig_text.split(maxsplit=1)[1], parse_mode="markdown")
     text = ""
     i = 0
+    k = 0
     for member in app.iter_chat_members(msg.chat.id):
         if not member.user.is_bot:
+            k += 1
+            if tag == "n":
+                text += "[{}](tg://user?id={})".format(str(k), member.user.id)
+                text += " "
+            else:
+                text += "[{}](tg://user?id={})".format(str(tag), member.user.id)
+                text += " "
             i += 1
-            text += "[A](tg://user?id={})".format(member.user.id)
-            text += " "
         if i == 5:
             app.send_message(msg.chat.id, text, parse_mode="markdown")
             i = 0
