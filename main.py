@@ -67,30 +67,41 @@ def take_a_screenshot(app, message):
 
 @app.on_message(filters.command("mention", prefixes="."))
 def mention_user(_, msg):
-    orig_text = msg.text.split(".mention")
-    name = orig_text[1].split()[0].replace(" ", "")
-    text = orig_text[1].split(name)[1]
-    identifier = app.get_users(name).id
-    chat_id = msg.chat.id
+    pattern = r"\[([^\[\]]*)\]"
+
     msg.delete()
 
-    app.send_message(chat_id, ("[{}](tg://user?id={})".format(text, identifier)), parse_mode="markdown")
+    orig_text = msg.text.split(".mention ")[1]
+    name = orig_text.split(maxsplit=1)[0]
+    text = orig_text.split(maxsplit=1)[1]
+    identifier = app.get_users(name).id
+    try:
+        tag_in_brackets = re.search(pattern, orig_text).group(0)
+        tag = re.search(pattern, orig_text).group(1)
+        if tag == "":
+            tag = app.get_users(name).first_name
+        text = text.replace(tag_in_brackets, "[{}](tg://user?id={})")
+        app.send_message(msg.chat.id, text.format(tag, identifier), parse_mode="markdown")
+    except AttributeError:
+        tag = text
+        app.send_message(msg.chat.id, "[{}](tg://user?id={})".format(tag, identifier), parse_mode="markdown")
 
 
 @app.on_message(filters.command("info", prefixes="."))
 def info(_, msg):
+    msg.delete()
     text = ""
     for member in app.iter_chat_members(msg.chat.id):
         print(member)
 
-    msg.delete()
     # app.send_message(msg.chat.id, text, parse_mode="markdown")
 
 
 @app.on_message(filters.command(["mention_all", "mention-all"], prefixes="."))
 def mention_all(_, msg):
     msg.delete()
-    pattern = r"\[(.*)\]"
+    # pattern = r"\[(.*)\]"
+    pattern = r"\[([^\[\]]*)\]"
     try:
         orig_text = msg.text.split(maxsplit=1)[1]
         app.send_message(msg.chat.id, orig_text.split(maxsplit=1)[1], parse_mode="markdown")
