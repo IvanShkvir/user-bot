@@ -1,3 +1,8 @@
+class custom_dict(dict):
+    def __missing__(self, key):
+        return 0
+
+
 REPLACEMENT_MAP = {
     "a": "ɐ",
     "b": "q",

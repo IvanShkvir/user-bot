@@ -7,8 +7,10 @@ import re
 import random
 
 from additional import REPLACEMENT_MAP as RM
+from additional import custom_dict
 
 app = Client("my_account")
+me = 395589642
 
 
 @app.on_message(filters.command("тайп", prefixes=".") & filters.me)
@@ -90,9 +92,8 @@ def mention_user(_, msg):
 @app.on_message(filters.command("info", prefixes="."))
 def info(_, msg):
     msg.delete()
-    text = ""
-    for member in app.iter_chat_members(msg.chat.id):
-        print(member)
+    print(msg)
+    print(msg.chat)
 
     # app.send_message(msg.chat.id, text, parse_mode="markdown")
 
@@ -160,146 +161,146 @@ def flip(_, msg):
     app.send_message(msg.chat.id, final_str)
 
 
-@app.on_message(filters.command("until_session", prefixes="."))
-def time_until_session(_, msg):
-    session = datetime(2021, 1, 21, hour=8, minute=30)
-    while True:
-        time_now = datetime.now()
-        print(time_now)
-        d = timedelta(hours=2)
-        time_now += d
-        print("After adding two hours")
-        print(time_now)
+@app.on_message(filters.command("word_count", prefixes="."))
+def word_counter(_, msg):
+    msg.delete()
+    try:
+        limit = int(msg.text.split()[1])
+    except (ValueError, IndexError):
+        limit = 2000
 
-        if time_now.month == session.month and time_now.day == session.day:
-            msg.delete()
-            app.send_message(msg.chat.id, "ГГ, сесія вже сьогодні, готуйте гроші)))")
-            break
-        try:
-            string = "‼ Сесія розпочнеться через "
-            delta = str(session - time_now)[:-7]
+    try:
+        k = int(msg.text.split()[2])
+    except (ValueError, IndexError):
+        k = 0
 
-            day = delta.split()[0]
-            if len(day) == 2:
-                pass
-            if day == "11":
-                ending = " днів, "
-            elif day[1] == '1':
-                ending = " день, "
-            else:
-                ending = " днів, "
+    words = custom_dict()
+    progress = app.send_message(msg.chat.id, "`waiting for chat history to be loaded...`")
 
-            string += day
-            string += ending
+    total = 0
+    for m in app.iter_history(msg.chat.id, limit=limit):
+        total += 1
+        if total % 100 == 0:
+            try:
+                progress.edit_text(f"`processed {total} messages...`")
+            except FloodWait as e:
+                sleep(e.x)
+        if m.text:
+            for word in m.text.split():
+                if len(word) >= k:
+                    words[word.lower()] += 1
+        if m.caption:
+            for word in m.caption.split():
+                if len(word) >= k:
+                    words[word.lower()] += 1
 
-            hms = delta.split()[2]
+    progress.delete()
+    app.send_message(msg.chat.id, f"`processed {total} messages...`")
 
-            h, m, s = map(int, hms.split(":"))
+    freq = sorted(words, key=words.get, reverse=True)
+    print(freq)
+    if k == 0:
+        out_additional = "(any words)"
+    else:
+        out_additional = f"({k} and more letters)"
+    out = f"Most common words {out_additional}:\n"
+    for i in range(50):
+        space = " "
+        if i >= 10:
+            space = " "
+        out += f"{i + 1}.{space}{freq[i]} - {words[freq[i]]}\n"
 
-            if h == 1 or h == 21:
-                ending = " годину, "
-            elif 1 < h < 5 or 21 < h < 25:
-                ending = " години, "
-            else:
-                ending = " годин, "
-
-            string += str(h)
-            string += ending
-
-            if str(m)[-1] == '1' and m != 11:
-                ending = " хвилину, "
-            elif str(m)[-1] in ['2', '3', '4'] and not str(m).startswith('1'):
-                ending = " хвилини, "
-            else:
-                ending = " хвилин, "
-
-            string += str(m)
-            string += ending
-
-            if str(s)[-1] == '1' and s != 11:
-                ending = " секунду! ‼"
-            elif str(s)[-1] in ['2', '3', '4'] and not str(s).startswith('1'):
-                ending = " секунди! ‼"
-            else:
-                ending = " секунд! ‼"
-
-            string += str(s)
-            string += ending
-
-            msg.edit(string)
-            sleep(1)
-
-        except FloodWait as e:
-            sleep(e.x)
+    print(f"limit = {limit}, k = {k}, total = {total}")
+    print(out)
+    app.send_message(msg.chat.id, out, parse_mode=None)
 
 
-@app.on_message(filters.command("until_ny", prefixes="."))
-def time_until_ny(_, msg):
-    new_year = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=1)
+@app.on_message(filters.command(["message_count", "msg_count"], prefixes="."))
+def message_counter(_, msg):
+    msg.delete()
 
-    while True:
-        time_now = datetime.now()
-        print("Before adding:")
-        print(time_now)
-        d = timedelta(hours=2)
-        time_now += d
-        print("After adding two hours:")
-        print(time_now)
+    total = 0
+    for m in app.iter_history(msg.chat.id):
+        total += 1
 
-        if time_now == new_year:
-            msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
-            app.send_message(msg.chat.id, "Усіх вітаю зі святом, бажаю усього найкращого в новому 2021 році!🥳")
-            app.send_message(msg.chat.id, "А тепер просто нагадування😂")
-            app.send_message(msg.chat.id, ".until_session")
-            break
-        try:
-            string = "🎄 До Нового Року "
+    print(total)
 
-            print("New Year Date:")
-            print(new_year)
-            print("Time Now:")
-            print(time_now)
-            print("Their difference")
-            delta = str(new_year - time_now)[:-7]
-            print(delta)
+    app.send_message(me, f"Total amount of messages in {msg.chat.title} is {total}")
 
-            h, m, s = map(int, delta.split(":"))
 
-            if h == 1 or h == 21:
-                ending = " година, "
-            elif 1 < h < 5 or 21 < h < 25:
-                ending = " години, "
-            else:
-                ending = " годин, "
-
-            string += str(h)
-            string += ending
-
-            if str(m)[-1] == '1' and m != 11:
-                ending = " хвилина, "
-            elif str(m)[-1] in ['2', '3', '4'] and not str(m).startswith('1'):
-                ending = " хвилини, "
-            else:
-                ending = " хвилин, "
-
-            string += str(m)
-            string += ending
-
-            if str(s)[-1] == '1' and s != 11:
-                ending = " секунда! 🎄"
-            elif str(s)[-1] in ['2', '3', '4'] and not str(s).startswith('1'):
-                ending = " секунди! 🎄"
-            else:
-                ending = " секунд! 🎄"
-
-            string += str(s)
-            string += ending
-
-            msg.edit(string)
-            sleep(0.9)
-
-        except FloodWait as e:
-            sleep(e.x)
+@app.on_message(filters.command("self_test", prefixes="."))
+def send_self(_, msg):
+    msg.delete()
+    app.send_message(me, msg.text.split(maxsplit=1)[1])
 
 
 app.run()
+
+# @app.on_message(filters.command("until_ny", prefixes="."))
+# def time_until_ny(_, msg):
+#     new_year = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=1)
+#
+#     while True:
+#         time_now = datetime.now()
+#         print("Before adding:")
+#         print(time_now)
+#         d = timedelta(hours=2)
+#         time_now += d
+#         print("After adding two hours:")
+#         print(time_now)
+#
+#         if time_now == new_year:
+#             msg.edit(msg.chat.id, "✨ ВСІХ З НОВИМ РОКОМ!!! ✨")
+#             app.send_message(msg.chat.id, "Усіх вітаю зі святом, бажаю усього найкращого в новому 2021 році!🥳")
+#             app.send_message(msg.chat.id, "А тепер просто нагадування😂")
+#             app.send_message(msg.chat.id, ".until_session")
+#             break
+#         try:
+#             string = "🎄 До Нового Року "
+#
+#             print("New Year Date:")
+#             print(new_year)
+#             print("Time Now:")
+#             print(time_now)
+#             print("Their difference")
+#             delta = str(new_year - time_now)[:-7]
+#             print(delta)
+#
+#             h, m, s = map(int, delta.split(":"))
+#
+#             if h == 1 or h == 21:
+#                 ending = " година, "
+#             elif 1 < h < 5 or 21 < h < 25:
+#                 ending = " години, "
+#             else:
+#                 ending = " годин, "
+#
+#             string += str(h)
+#             string += ending
+#
+#             if str(m)[-1] == '1' and m != 11:
+#                 ending = " хвилина, "
+#             elif str(m)[-1] in ['2', '3', '4'] and not str(m).startswith('1'):
+#                 ending = " хвилини, "
+#             else:
+#                 ending = " хвилин, "
+#
+#             string += str(m)
+#             string += ending
+#
+#             if str(s)[-1] == '1' and s != 11:
+#                 ending = " секунда! 🎄"
+#             elif str(s)[-1] in ['2', '3', '4'] and not str(s).startswith('1'):
+#                 ending = " секунди! 🎄"
+#             else:
+#                 ending = " секунд! 🎄"
+#
+#             string += str(s)
+#             string += ending
+#
+#             msg.edit(string)
+#             sleep(0.9)
+#
+#         except FloodWait as e:
+#             sleep(e.x)
+
