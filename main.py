@@ -7,10 +7,9 @@ import re
 import random
 
 from additional import REPLACEMENT_MAP as RM
-from additional import custom_dict
+from additional import custom_dict, ME_ID
 
 app = Client("my_account")
-me = 395589642
 
 
 @app.on_message(filters.command("тайп", prefixes=".") & filters.me)
@@ -87,15 +86,6 @@ def mention_user(_, msg):
     except AttributeError:
         tag = text
         app.send_message(msg.chat.id, "[{}](tg://user?id={})".format(tag, identifier), parse_mode="markdown")
-
-
-@app.on_message(filters.command("info", prefixes="."))
-def info(_, msg):
-    msg.delete()
-    print(msg)
-    print(msg.chat)
-
-    # app.send_message(msg.chat.id, text, parse_mode="markdown")
 
 
 @app.on_message(filters.command(["mention_all", "mention-all"], prefixes="."))
@@ -198,20 +188,18 @@ def word_counter(_, msg):
     app.send_message(msg.chat.id, f"`processed {total} messages...`")
 
     freq = sorted(words, key=words.get, reverse=True)
-    print(freq)
+
     if k == 0:
-        out_additional = "(any words)"
+        out_additional = f"(any words)"
     else:
         out_additional = f"({k} and more letters)"
     out = f"Most common words {out_additional}:\n"
     for i in range(50):
-        space = " "
-        if i >= 10:
-            space = " "
+        space = "    "
+        if i >= 9:  # 10
+            space = "  "
         out += f"{i + 1}.{space}{freq[i]} - {words[freq[i]]}\n"
 
-    print(f"limit = {limit}, k = {k}, total = {total}")
-    print(out)
     app.send_message(msg.chat.id, out, parse_mode=None)
 
 
@@ -219,19 +207,51 @@ def word_counter(_, msg):
 def message_counter(_, msg):
     msg.delete()
 
-    total = 0
-    for m in app.iter_history(msg.chat.id):
-        total += 1
+    slf = False
+    try:
+        slf = "self" == msg.text.split(maxsplit=1)[1]
+    except IndexError:
+        pass
 
-    print(total)
+    total = app.get_history_count(msg.chat.id)
 
-    app.send_message(me, f"Total amount of messages in {msg.chat.title} is {total}")
+    # total = 0
+    # for m in app.iter_history(msg.chat.id):
+    #     total += 1
+
+    name = ""
+    if msg.chat.title:
+        name = f" in {msg.chat.title}"
+    elif msg.chat.id == ME_ID:
+        pass
+    elif msg.chat.first_name:
+        name = f" with {msg.chat.first_name}"
+
+    if slf:
+        app.send_message("me", f"`Total amount of messages{name} is {total}`")
+    else:
+        app.send_message(msg.chat.id, f"`Total amount of messages{name} is {total}`")
 
 
 @app.on_message(filters.command("self_test", prefixes="."))
 def send_self(_, msg):
     msg.delete()
-    app.send_message(me, msg.text.split(maxsplit=1)[1])
+    app.send_message("me", msg.text.split(maxsplit=1)[1])
+
+
+@app.on_message(filters.command("info", prefixes="."))
+def info(_, msg):
+    msg.delete()
+    slf = False
+    try:
+        slf = "self" == msg.text.split(maxsplit=1)[1]
+    except IndexError:
+        pass
+
+    if slf:
+        app.send_message("me", f"`{msg}`")
+    else:
+        print(msg)
 
 
 app.run()

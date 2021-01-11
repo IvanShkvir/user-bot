@@ -3,6 +3,8 @@ class custom_dict(dict):
         return 0
 
 
+ME_ID = 395589642
+
 REPLACEMENT_MAP = {
     "a": "ɐ",
     "b": "q",
