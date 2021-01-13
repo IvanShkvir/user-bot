@@ -116,6 +116,12 @@ def mention_all(_, msg):
         except IndexError:
             pass
     else:
+        try:
+            text = msg.text.split(maxsplit=1)[1]
+            app.send_message(msg.chat.id, text, parse_mode="markdown")
+        except IndexError:
+            pass
+
         tag = "A"
 
     text = ""
