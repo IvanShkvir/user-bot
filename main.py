@@ -134,11 +134,11 @@ def mention_all(_, msg):
                 text += " "
             i += 1
         if i == 5:
-            app.send_message(msg.chat.id, text, parse_mode="markdown", disable_notification=True)
+            app.send_message(msg.chat.id, text, parse_mode="markdown")
             i = 0
             text = ""
     if text != "":
-        app.send_message(msg.chat.id, text, parse_mode="markdown", disable_notification=True)
+        app.send_message(msg.chat.id, text, parse_mode="markdown")
 
 
 @app.on_message(filters.command(["spam", "спам"], prefixes=".") & filters.me)
