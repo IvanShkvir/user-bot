@@ -12,6 +12,11 @@ from additional import custom_dict, ME_ID
 app = Client("my_account")
 
 
+@app.on_message(filters.chat(chats=1234060895))
+def analyze_msg(_, msg):
+    print(msg.text)
+
+
 @app.on_message(filters.command("тайп", prefixes=".") & filters.me)
 def type(_, msg):
     orig_text = msg.text.split(".тайп ", maxsplit=1)[1]
@@ -123,7 +128,7 @@ def mention_all(_, msg):
         app.send_message(msg.chat.id, text, parse_mode="markdown")
 
 
-@app.on_message(filters.command(["spam", "спам"], prefixes="."))
+@app.on_message(filters.command(["spam", "спам"], prefixes=".") & filters.me)
 def spam(_, msg):
     msg.delete()
     text = msg.text.split(maxsplit=2)[2]
@@ -151,7 +156,7 @@ def flip(_, msg):
     app.send_message(msg.chat.id, final_str)
 
 
-@app.on_message(filters.command("word_count", prefixes="."))
+@app.on_message(filters.command("word_count", prefixes=".") & filters.me)
 def word_counter(_, msg):
     msg.delete()
     try:
@@ -203,7 +208,7 @@ def word_counter(_, msg):
     app.send_message(msg.chat.id, out, parse_mode=None)
 
 
-@app.on_message(filters.command(["message_count", "msg_count"], prefixes="."))
+@app.on_message(filters.command(["message_count", "msg_count"], prefixes=".") & filters.me)
 def message_counter(_, msg):
     msg.delete()
 
@@ -239,9 +244,10 @@ def send_self(_, msg):
     app.send_message("me", msg.text.split(maxsplit=1)[1])
 
 
-@app.on_message(filters.command("info", prefixes="."))
+@app.on_message(filters.command("info", prefixes=".") & filters.me)
 def info(_, msg):
     msg.delete()
+
     slf = False
     try:
         slf = "self" == msg.text.split(maxsplit=1)[1]
