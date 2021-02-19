@@ -93,7 +93,7 @@ def mention_user(_, msg):
         app.send_message(msg.chat.id, "[{}](tg://user?id={})".format(tag, identifier), parse_mode="markdown")
 
 
-@app.on_message(filters.command(["mention_all", "mention-all", "ma", "m-a"], prefixes=".") &
+@app.on_message(filters.command(["mention_all", "mention-all", "ma", "m-a", "m_a"], prefixes=".") &
                 (filters.me | filters.chat(chats=-1001445304641)))
 def mention_all(_, msg):
     msg.delete()
@@ -106,19 +106,19 @@ def mention_all(_, msg):
     # pattern = r"\[(.*)\]"
     pattern = r"\[([^\[\]]*)\]"
 
-    arg = re.search(pattern, msg.text)
+    arg = re.search(pattern, msg.text)  # for tag
     if arg:
         tag = arg.group(1)
-        text = msg.text.replace(arg.group(0), "")
+        orig_text = msg.text.replace(arg.group(0), "")
 
         try:
-            app.send_message(msg.chat.id, text.split(maxsplit=1)[1], parse_mode="markdown")
+            app.send_message(msg.chat.id, orig_text.split(maxsplit=1)[1], parse_mode="markdown")
         except IndexError:
             pass
     else:
         try:
-            text = msg.text.split(maxsplit=1)[1]
-            app.send_message(msg.chat.id, text, parse_mode="markdown")
+            orig_text = msg.text.split(maxsplit=1)[1]
+            app.send_message(msg.chat.id, orig_text, parse_mode="markdown")
         except IndexError:
             pass
 
@@ -145,6 +145,11 @@ def mention_all(_, msg):
             text = ""
     if text != "":
         app.send_message(msg.chat.id, text, parse_mode="markdown")
+
+    try:
+        app.send_message(msg.chat.id, orig_text, parse_mode="markdown")
+    except IndexError:
+        pass
 
 
 @app.on_message(filters.command(["spam", "спам"], prefixes=".") & filters.me)
@@ -255,6 +260,94 @@ def message_counter(_, msg):
         app.send_message("me", f"`Total amount of messages{name} is {total}`")
     else:
         app.send_message(msg.chat.id, f"`Total amount of messages{name} is {total}`")
+
+
+@app.on_message(filters.command(["топ", "top"], prefixes=".") & (filters.me | filters.chat(chats=-1001445304641)))
+def top(_, msg):
+    msg.delete()
+
+    slf = False
+
+    try:
+        slf = "self" == msg.text.split()[-1]
+    except IndexError:
+        pass
+
+    amount = 10
+
+    try:
+        amount = msg.text.split()[1]
+    except IndexError:
+        pass
+
+    limit = 1000
+
+    try:
+        limit = msg.text.split()[2]
+    except IndexError:
+        pass
+
+    if limit == "all":
+        limit = app.get_history_count(msg.chat.id)
+    else:
+        try:
+            limit = int(limit)
+        except ValueError:
+            limit = 1000
+
+    progress = app.send_message(msg.chat.id, "`waiting for chat history to be loaded...`")
+
+    top_dict = custom_dict()
+
+    empty = ""
+    total = 0
+    for m in app.iter_history(msg.chat.id, limit=limit):
+        total += 1
+        if total % 100 == 0:
+            try:
+                progress.edit_text(f"`processed {total} messages...`")
+            except FloodWait as e:
+                sleep(e.x)
+
+        if not m.from_user.is_bot:
+            top_dict[f"{m.from_user.first_name} {m.from_user.last_name if m.from_user.last_name else empty}"] += 1
+
+    progress.delete()
+
+    top_sorted = sorted(list(top_dict.items()), key=lambda x: x[1], reverse=True)
+
+    print(top_sorted)
+
+    if str(limit)[-1] == '1':
+        ending = "message"
+    else:
+        ending = "messages"
+
+    out = f"Most active users in {msg.chat.title} (for last {limit} {ending}):\n"
+
+    if amount == "all":
+        amount = len(top_sorted)
+    else:
+        try:
+            amount = int(amount)
+        except ValueError:
+            amount = 5
+
+    if amount > len(top_sorted):
+        amount = len(top_sorted)
+
+    for i in range(amount):
+        out_one = f"   {top_sorted[i][0]}"
+        while len(out_one) != 35:
+            out_one += " "
+        out_one += f" — {round(int(top_sorted[i][1]) / total * 100, ndigits=2)}%\n"
+        out_one += "   "
+        out_one += "-" * 41
+        out += f"{out_one}\n"
+
+    print(out)
+
+    app.send_message(msg.chat.id, f"```{out}```", parse_mode="markdown")
 
 
 @app.on_message(filters.command("self_test", prefixes="."))
