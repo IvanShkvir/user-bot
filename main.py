@@ -10,7 +10,7 @@ from additional import custom_dict, ME_ID
 
 app = Client("my_account")
 
-limit = 0
+limit_for_requests = 0
 
 
 # @app.on_message(filters.chat(chats=1234060895))
@@ -97,15 +97,17 @@ def mention_user(_, msg):
 @app.on_message(filters.command(["mention_all", "mention-all", "ma", "m-a", "m_a", "ма"], prefixes=".") &
                 (filters.me | filters.chat(chats=-1001445304641)))
 def mention_all(_, msg):
-    global limit
+    global limit_for_requests
 
     msg.delete()
 
-    if limit >= 3:
-        app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
+    if limit_for_requests >= 1:
+        stop = app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
+        sleep(3)
+        stop.delete()
         return
     else:
-        limit += 1
+        limit_for_requests += 1
 
     if msg.from_user.id != ME_ID:
         app.send_message(msg.chat.id,
@@ -160,8 +162,8 @@ def mention_all(_, msg):
     except IndexError:
         pass
 
-    if limit > 0:
-        limit -= 1
+    if limit_for_requests > 0:
+        limit_for_requests -= 1
 
 
 @app.on_message(filters.command(["spam", "спам"], prefixes=".") & filters.me)
@@ -276,15 +278,17 @@ def message_counter(_, msg):
 
 @app.on_message(filters.command(["топ", "top"], prefixes=".") & (filters.me | filters.chat(chats=-1001445304641)))
 def top(_, msg):
-    global limit
+    global limit_for_requests
 
     msg.delete()
 
-    if limit >= 3:
-        app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
+    if limit_for_requests >= 2:
+        stop = app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
+        sleep(3)
+        stop.delete()
         return
     else:
-        limit += 1
+        limit_for_requests += 1
 
     if msg.from_user.id != ME_ID:
         app.send_message(msg.chat.id,
@@ -341,8 +345,6 @@ def top(_, msg):
 
     top_sorted = sorted(list(top_dict.items()), key=lambda x: x[1], reverse=True)
 
-    print(top_sorted)
-
     if str(limit)[-1] == '1':
         ending = "message"
     else:
@@ -370,37 +372,35 @@ def top(_, msg):
         out_one += "-" * 41
         out += f"{out_one}\n"
 
-    print(out)
-
     if slf:
         app.send_message("me", f"```{out}```", parse_mode="markdown")
     else:
         app.send_message(msg.chat.id, f"```{out}```", parse_mode="markdown")
 
-    if limit > 0:
-        limit -= 1
+    if limit_for_requests > 0:
+        limit_for_requests -= 1
 
 
 @app.on_message(filters.command("test", prefixes=".") & filters.me)
 def send_self(_, msg):
-    global limit
+    global limit_for_requests
 
     msg.delete()
 
-    if limit >= 3:
+    if limit_for_requests >= 3:
         app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
         return
     else:
-        limit += 1
+        limit_for_requests += 1
 
-    app.send_message("me", "```waiting for 7 sec```")
+    app.send_message(msg.chat.id, "```waiting for 7 sec```")
 
     sleep(7)
 
-    app.send_message("me", msg.text.split(maxsplit=1)[1])
+    app.send_message(msg.chat.id, msg.text.split(maxsplit=1)[1])
 
-    if limit > 0:
-        limit -= 1
+    if limit_for_requests > 0:
+        limit_for_requests -= 1
 
 
 @app.on_message(filters.command("info", prefixes=".") & filters.me)
