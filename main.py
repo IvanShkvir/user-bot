@@ -101,13 +101,13 @@ def mention_all(_, msg):
 
     msg.delete()
 
-    if limit_for_requests >= 1:
-        stop = app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
-        sleep(3)
-        stop.delete()
-        return
-    else:
-        limit_for_requests += 1
+    # if limit_for_requests >= 2:
+    #     stop = app.send_message(msg.chat.id, f"[{msg.from_user.first_name}](tg://user?id={msg.from_user.id}), stop it!")
+    #     sleep(3)
+    #     stop.delete()
+    #     return
+    # else:
+    #     limit_for_requests += 1
 
     if msg.from_user.id != ME_ID:
         app.send_message(msg.chat.id,
@@ -162,8 +162,8 @@ def mention_all(_, msg):
     except IndexError:
         pass
 
-    if limit_for_requests > 0:
-        limit_for_requests -= 1
+    # if limit_for_requests > 0:
+    #     limit_for_requests -= 1
 
 
 @app.on_message(filters.command(["spam", "спам"], prefixes=".") & filters.me)
