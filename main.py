@@ -4,6 +4,7 @@ from pyrogram.errors import FloodWait
 from time import sleep
 import re
 import random
+import string
 
 from additional import REPLACEMENT_MAP as RM
 from additional import custom_dict, ME_ID
@@ -179,6 +180,20 @@ def spam(_, msg):
             sleep(e.x)
 
 
+@app.on_message(filters.command(["spam_random", "random_spam", "спам_рандом", "рандом_спам"], prefixes=".") & filters.me)
+def spam_random(_, msg):
+    msg.delete()
+    amount = msg.text.split()[1]
+    n = msg.text.split()[2]
+
+    for _ in range(amount):
+        text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
+        try:
+            app.send_message(msg.chat.id, text)
+        except FloodWait as e:
+            sleep(e.x)
+
+
 @app.on_message(filters.command("flip", prefixes=".") & filters.me)
 def flip(_, msg):
     msg.delete()
@@ -338,8 +353,11 @@ def top(_, msg):
             except FloodWait as e:
                 sleep(e.x)
 
-        if not m.from_user.is_bot:
-            top_dict[f"{m.from_user.first_name} {m.from_user.last_name if m.from_user.last_name else empty}"] += 1
+        try:
+            if not m.from_user.is_bot:
+                top_dict[f"{m.from_user.first_name} {m.from_user.last_name if m.from_user.last_name else empty}"] += 1
+        except AttributeError:
+            pass
 
     progress.delete()
 
